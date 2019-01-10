@@ -4,6 +4,7 @@ pipeline{
          stage('Check version'){
              steps {
                  echo "Stage 1 - Step 1"
+                 sh 'pwd'
                  sh 'mvn --version'
              }
          }
