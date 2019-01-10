@@ -10,7 +10,7 @@ pipeline{
           stage('stage 2'){
              steps{
                  echo "Stage 2 - Step 1"
-                 sh 'mvn --version'
+                 sh 'mvn package'
              }
              
          }
