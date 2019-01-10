@@ -1,0 +1,19 @@
+pipe{
+    agent any,
+    stages {
+         stage('stage 1'){
+             steps {
+                 echo "Stage 1 - Step 1"
+                 sh 'mvn --version'
+             }
+         }
+          stage('stage 2'){
+             steps{
+                 echo "Stage 2 - Step 1"
+                 sh 'mvn --version'
+             }
+             
+         }
+         
+    }
+}
