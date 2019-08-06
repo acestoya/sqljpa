@@ -33,7 +33,9 @@ import org.sqljpa.annotation.Audited;
 import org.sqljpa.annotation.CollectionOfEntity;
 import org.sqljpa.annotation.MapOfEntity;
 import org.sqljpa.annotation.SQLSequence;
+import org.sqljpa.annotation.VersionColumn;
 import org.sqljpa.util.SQLUtility;
+
 
 public abstract class MapperFactory {
 
@@ -104,10 +106,13 @@ public abstract class MapperFactory {
 					objectTableInfo.setIdType(f.getType());
 					objectTableInfo.setIdName(f.getName());
 				}
-				if (an instanceof Column) {
+				if ((an instanceof Column) ||(an instanceof VersionColumn)) {
 					field.setColumn(((Column) an).name());
 					if (!((Column) an).updatable()) {
 						field.setReadonly(true);
+					}
+					if (an instanceof VersionColumn) {
+						field.setDbScriptUpdateValue(((VersionColumn) an).getValueFrom());
 					}
 					try {
 						PropertyDescriptor descriptor = new PropertyDescriptor(f.getName(),
@@ -149,6 +154,8 @@ public abstract class MapperFactory {
 					objectTableInfo.setHistoryTable(((Audited) an).historyTable());
 					objectTableInfo.setAuditId(f.getName());
 				}
+				
+				
 				if (an instanceof CollectionOfEntity) {
 					CollectionFieldMapper colField = new CollectionFieldMapper();
 					colField.setType(f.getType());
@@ -232,6 +239,7 @@ public abstract class MapperFactory {
 			objectTableInfo.setInsertSql(SQLGenerator.getInstance().generateInsert(objectTableInfo, false));
 			objectTableInfo.setInsertSqlBatch(SQLGenerator.getInstance().generateInsert(objectTableInfo, true));
 			objectTableInfo.setRemoveByIdSql(SQLGenerator.getInstance().generateRemoveById(objectTableInfo));
+			objectTableInfo.setUpdateSql(SQLGenerator.getInstance().generateUpdate(objectTableInfo));
 		}
 		objectTableInfoMap.put(clazz.getName(), objectTableInfo);
 		return objectTableInfo;

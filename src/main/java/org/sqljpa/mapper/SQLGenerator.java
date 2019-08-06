@@ -1,59 +1,103 @@
 package org.sqljpa.mapper;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
+
+import org.sqljpa.util.ParamMap;
 
 public abstract class SQLGenerator {
 	private static SQLGenerator instance;
 	
+	private SQLGenerator() {}
+	
 	public static SQLGenerator getInstance() {
 		if(instance == null) {
-			instance = new SQLGenerator() {};
+			synchronized(SQLGenerator.class){
+				if(instance == null) {
+					instance = new SQLGenerator() {};
+				}
+			}
 		}
 		return instance;
 	}
+	
 	public String generateInsert(ObjectTableInfo objTbl, boolean isbatch) {
 		Set<Entry<String, FieldMapper>> entrySet = objTbl.getColumnToPropertyMap().entrySet();
 		StringBuilder colsb = new StringBuilder();
 		StringBuilder parsb = new StringBuilder();
 		for (Entry<String, FieldMapper> entry : entrySet) {
 			FieldMapper field = entry.getValue();
-			if(!field.isReadonly()) {				
-				if (colsb.length() > 0) {
-					colsb.append(", ");
-					parsb.append(", ");
-				}
+			if (colsb.length() > 0) {
+				colsb.append(", ");
+				parsb.append(", ");
+			}
+			//if(!field.isReadonly()) {	
 				colsb.append(field.getColumn());
 				if(field.getName().equals(objTbl.getIdName()) &&  isbatch) {
 					parsb.append(objTbl.getSequenceFunction());
+				}else if(field.getDbScriptUpdateValue() != null) {
+					parsb.append(field.getDbScriptUpdateValue());
 				}else {
 					parsb.append(":" + field.getName());
 				}				
-			}			
+			//}
+			
 		}
 		StringBuilder result = new StringBuilder("INSERT INTO ");
 		result.append(objTbl.getTableName()).append("(").append(colsb).append(") VALUES (").append(parsb).append(") ;");
 		return result.toString();
 	}
-	
-	public String generateUpdate(ObjectTableInfo objTbl,Map<String,Object> param) {		
+	public String generateUpdate(ObjectTableInfo objTbl) {
+		StringBuilder result = new StringBuilder("UPDATE ");
+		result.append(objTbl.getTableName()).append( " SET " );
+		boolean first = true;
+		for( Entry<String, FieldMapper> entry:objTbl.getColumnToPropertyMap().entrySet()) {
+			FieldMapper field = entry.getValue();
+			if (!field.isReadonly()) {
+				if (!field.getName().equals(objTbl.getIdName())) {
+					if (!first) {
+						result.append(", ");
+					}
+					first = false;
+					if(field.getDbScriptUpdateValue() != null) {
+						result.append(field.getColumn()).append(" = ").append(field.getDbScriptUpdateValue());
+					}else {
+						result.append(field.getColumn()).append(" = :").append(field.getName());
+					}
+					
+				}
+			}
+		}
+		result.append(" WHERE ").append(objTbl.getIdColumn()).append(" IN ( :").append(objTbl.getIdName()).append(" )");
+		return result.toString();
+	}
+	public String generateUpdate(ObjectTableInfo objTbl,Map<String,Object> param) {
+		/*
 		StringBuilder result = new StringBuilder("UPDATE ");
 		result.append(objTbl.getTableName()).append( " SET " );
 		Set<Entry<String, Object>> entrySet = param.entrySet();
 		boolean first = true;
 		for (Entry<String, Object> entry : entrySet) {
 			FieldMapper field = objTbl.getColumnToPropertyMap().get(entry.getKey());
-			if(!field.getName().equals(objTbl.getIdName())) {
-				if(!first) {
-					result.append(", ");
+			if (!field.isReadonly()) {
+				if (!field.getName().equals(objTbl.getIdName())) {
+					if (!first) {
+						result.append(", ");
+					}
+					first = false;
+					if(field.getDbScriptUpdateValue() != null) {
+						result.append(field.getColumn()).append(" = ").append(field.getDbScriptUpdateValue());
+					}else {
+						result.append(field.getColumn()).append(" = :").append(entry.getKey());
+					}
+					
 				}
-				first = false;				
-				result.append(field.getColumn()).append(" = :").append(entry.getKey());
-			}			
+			}
 		}		
 		result.append(" WHERE ").append(objTbl.getIdColumn()).append(" IN ( :").append(objTbl.getIdName()).append(" )");
-		return result.toString();
+		*/
+		return generateUpdate(objTbl,param, new ParamMap(objTbl.getIdColumn(),""));
 	}
 	
 	public String generateWhereClause(ObjectTableInfo objTbl,Map<String,Object> filter) {
@@ -114,13 +158,19 @@ public abstract class SQLGenerator {
 			if(field == null) {
 				continue;
 			}
-			if(!field.getName().equals(objTbl.getIdName())) {
-				if(!first) {
-					result.append(", ");
+			if (!field.isReadonly()) {
+				if (!field.getName().equals(objTbl.getIdName())) {
+					if (!first) {
+						result.append(", ");
+					}
+					first = false;
+					if(field.getDbScriptUpdateValue() != null) {
+						result.append(field.getColumn()).append(" = ").append(field.getDbScriptUpdateValue());
+					}else {
+						result.append(field.getColumn()).append(" = :").append(entry.getKey());
+					}
 				}
-				first = false;				
-				result.append(field.getColumn()).append(" = :").append(entry.getKey());
-			}			
+			}
 		}
 		result.append(generateWhereClause(objTbl,filter));
 		return result.toString();

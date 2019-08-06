@@ -43,6 +43,10 @@ public class SqlSupportDAO<T> extends SqlBaseDao<T> {
 		return (T)this.getJdbcTemplate().queryForObject(
 				this.getSqlGenerator().generateSingleSelect(objectTable), ida, getRowMapper(this.getPersistentClass()));		
 	}
+	
+	public T getById(Object id) {
+		return getObject(id);		
+	}
 
 	public T insert(T t, boolean generateId) {
 		ObjectTableInfo objectTable = getMapperFactory().getObjectTableInfo(t.getClass());
@@ -86,6 +90,11 @@ public class SqlSupportDAO<T> extends SqlBaseDao<T> {
 	protected int insertHistory(Map<String,Object> param) {
 		ObjectTableInfo objectTable = getMapperFactory().getObjectTableInfo(this.getPersistentClass());
 		return auditStrategy.logHistory(objectTable, param);		
+	}
+	
+	public int update(T t) {
+		ObjectTableInfo objectTable = getMapperFactory().getObjectTableInfo(t.getClass());
+		return this.getNamedParameterJdbcTemplate().update(objectTable.getUpdateSql(),this.getParam(t));
 	}
 	
 	public int update(Map<String,Object> param) { //TODO Optimistic locking

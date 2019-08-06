@@ -8,6 +8,10 @@ public class ParamMap extends HashMap<String, Object> {
 		super();
 	}
 	
+	public ParamMap(int size) {
+		super(size);
+	}
+	
 	public ParamMap(Map m) {
 		super();
 		this.putAll(m);

@@ -1,9 +1,6 @@
 package org.sqljpa.mapper;
 
-import java.lang.reflect.Field;
 import java.util.Map;
-
-import javax.persistence.AttributeConverter;
 
 public class ObjectTableInfo {
 	private String tableName;
@@ -11,6 +8,7 @@ public class ObjectTableInfo {
 	private String sequenceGenerator;
 	private String sequenceFunction;
 	private String insertSql;
+	private String updateSql;
 	private String insertSqlBatch;
 	private String removeByIdSql;
 	private Class idType;
@@ -118,6 +116,12 @@ public class ObjectTableInfo {
 	}
 	public void setMapField(CollectionFieldMapper mapField) {
 		this.mapField = mapField;
+	}
+	public String getUpdateSql() {
+		return updateSql;
+	}
+	public void setUpdateSql(String updateSql) {
+		this.updateSql = updateSql;
 	}
 	
 }

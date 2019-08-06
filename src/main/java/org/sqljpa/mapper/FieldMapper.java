@@ -14,6 +14,7 @@ public class FieldMapper {
 	private Class converterEntityType;
 	private Method setter;
 	private Method getter;
+	private String dbScriptUpdateValue;
 
 	public String getName() {
 		return name;
@@ -90,5 +91,12 @@ public class FieldMapper {
 	public void setConverterEntityType(Class converterEntityType) {
 		this.converterEntityType = converterEntityType;
 	}
-	
+
+	public String getDbScriptUpdateValue() {
+		return dbScriptUpdateValue;
+	}
+
+	public void setDbScriptUpdateValue(String dbScriptUpdateValue) {
+		this.dbScriptUpdateValue = dbScriptUpdateValue;
+	}
 }
